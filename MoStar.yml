@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
-  title: Consolidated API
-  description: >
-    Comprehensive API combining the functionalities of text generation, vision
-    capabilities, function calling, data analysis, and various integrations.
+  title: MoStar API
+  description: >-
+    Comprehensive API for interacting with MoStar's text generation, vision
+    capabilities, function calling, and more.
   version: 1.0.0
 servers:
   - url: 'https://api.mostar.com'
@@ -28,166 +28,129 @@ servers:
     description: Baidu Maps API server
   - url: 'https://yandex.api.mostar.com'
     description: Yandex Maps API server
-  - url: 'https://mapbox.api.mostar.com'
-    description: Mapbox API server
-  - url: 'https://qgis.api.mostar.com'
-    description: QGIS API server
-  - url: 'https://arcgis-premium.api.mostar.com'
-    description: ArcGIS Premium API server
-  - url: 'https://mapbox-premium.api.mostar.com'
-    description: Mapbox Premium API server
-components:
-  securitySchemes:
-    userAuth:
-      type: apiKey
-      name: X-User-Name
-      in: header
-  schemas:
-    User:
-      type: object
-      properties:
-        name:
-          type: string
-        secret_word:
-          type: string
-    File:
-      type: object
-      properties:
-        id:
-          type: string
-        object:
-          type: string
-        bytes:
-          type: integer
-        created_at:
-          type: integer
-        filename:
-          type: string
-        purpose:
-          type: string
-        status:
-          type: string
-          deprecated: true
-        status_details:
-          type: string
-          deprecated: true
-    FileList:
-      type: object
-      properties:
-        object:
-          type: string
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-              object:
-                type: string
-              bytes:
-                type: integer
-              created_at:
-                type: integer
-              filename:
-                type: string
-              purpose:
-                type: string
-              status:
-                type: string
-                deprecated: true
-              status_details:
-                type: string
-                deprecated: true
-    DeleteResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        object:
-          type: string
-        deleted:
-          type: boolean
 paths:
-  /chat/completions:
+  '/persona/{persona_id}':
+    get:
+      summary: Retrieve persona by ID
+      operationId: getPersona
+      parameters:
+        - name: persona_id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema: {}
+      responses:
+        '200':
+          description: Persona retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Persona not found
+        '500':
+          description: Server error
+  '/persona/{persona_id}/element':
     post:
-      operationId: createChatCompletion
-      summary: Generate text completions based on provided messages and images
+      summary: Add an element to a persona
+      operationId: addElement
+      parameters:
+        - name: persona_id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema: {}
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                model:
-                  type: string
-                  enum:
-                    - gpt-4o
-                    - gpt-4o-mini
-                    - gpt-4-turbo
-                messages:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      role:
-                        type: string
-                        enum:
-                          - system
-                          - user
-                          - assistant
-                      content:
-                        type: object
-                        properties:
-                          type:
-                            type: string
-                            enum:
-                              - text
-                              - image_url
-                          text:
-                            type: string
-                          image_url:
-                            type: object
-                            properties:
-                              url:
-                                type: string
-                              detail:
-                                type: string
-                                enum:
-                                  - low
-                                  - high
-                                  - auto
-                max_tokens:
-                  type: integer
-                  example: 1000
-                response_format:
-                  type: object
-                  properties:
-                    type:
-                      type: string
-                      enum:
-                        - json_object
+              $ref: '#/components/schemas/persona_id_element_body'
+        required: true
+      responses:
+        '201':
+          description: Element added successfully
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  '/persona/{persona_id}/element/{element_id}':
+    put:
+      summary: Update an element of a persona
+      operationId: updateElement
+      parameters:
+        - name: persona_id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema: {}
+        - name: element_id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema: {}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/element_element_id_body'
+        required: true
+      responses:
+        '200':
+          description: Element updated successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Element not found
+        '500':
+          description: Server error
+    delete:
+      summary: Delete an element from a persona
+      operationId: deleteElement
+      parameters:
+        - name: persona_id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema: {}
+        - name: element_id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema: {}
+      responses:
+        '200':
+          description: Element deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Element not found
+        '500':
+          description: Server error
+  /chat/completions:
+    post:
+      summary: Generate text completions based on provided messages and images
+      operationId: createChatCompletion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/chat_completions_body'
+        required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  choices:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        message:
-                          type: object
-                          properties:
-                            role:
-                              type: string
-                            content:
-                              type: string
+                $ref: '#/components/schemas/inline_response_200_1'
         '400':
           description: Bad request
         '401':
@@ -196,118 +159,44 @@ paths:
           description: Server error
   /functions/call:
     post:
-      operationId: callFunction
       summary: Generate JSON for function calls based on user input
+      operationId: callFunction
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                model:
-                  type: string
-                  enum:
-                    - gpt-4o
-                    - gpt-4o-mini
-                    - gpt-4-turbo
-                messages:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      role:
-                        type: string
-                        enum:
-                          - system
-                          - user
-                          - assistant
-                      content:
-                        type: string
-                      functions:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            name:
-                              type: string
-                            description:
-                              type: string
-                            parameters:
-                              type: object
-                max_tokens:
-                  type: integer
-                  example: 1000
-                tool_choice:
-                  type: string
-                  enum:
-                    - auto
-                    - required
-                    - none
+              $ref: '#/components/schemas/functions_call_body'
+        required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  choices:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        message:
-                          type: object
-                          properties:
-                            role:
-                              type: string
-                            content:
-                              type: object
+                $ref: '#/components/schemas/inline_response_200_1'
         '400':
           description: Bad request
         '401':
           description: Unauthorized
         '500':
           description: Server error
-          paths: null
   /images/generations:
     post:
-      operationId: generateImage
       summary: Generate images from text prompts
+      operationId: generateImage
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                prompt:
-                  type: string
-                'n':
-                  type: integer
-                  description: Number of images to generate
-                size:
-                  type: string
-                  enum:
-                    - 256x256
-                    - 512x512
-                    - 1024x1024
+              $ref: '#/components/schemas/images_generations_body'
+        required: true
       responses:
         '200':
           description: Images generated successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        url:
-                          type: string
+                $ref: '#/components/schemas/inline_response_200_2'
         '400':
           description: Bad request
         '401':
@@ -316,47 +205,21 @@ paths:
           description: Server error
   /images/edits:
     post:
-      operationId: editImage
       summary: Edit images based on a prompt
+      operationId: editImage
       requestBody:
-        required: true
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
-                mask:
-                  type: string
-                  format: binary
-                prompt:
-                  type: string
-                'n':
-                  type: integer
-                  description: Number of images to generate
-                size:
-                  type: string
-                  enum:
-                    - 256x256
-                    - 512x512
-                    - 1024x1024
+              $ref: '#/components/schemas/images_edits_body'
+        required: true
       responses:
         '200':
           description: Images edited successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        url:
-                          type: string
+                $ref: '#/components/schemas/inline_response_200_2'
         '400':
           description: Bad request
         '401':
@@ -365,81 +228,44 @@ paths:
           description: Server error
   /images/variations:
     post:
-      operationId: createImageVariations
       summary: Create variations of an existing image
+      operationId: createImageVariations
       requestBody:
-        required: true
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
-                'n':
-                  type: integer
-                  description: Number of images to generate
-                size:
-                  type: string
-                  enum:
-                    - 256x256
-                    - 512x512
-                    - 1024x1024
+              $ref: '#/components/schemas/images_variations_body'
+        required: true
       responses:
         '200':
           description: Image variations created successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        url:
-                          type: string
+                $ref: '#/components/schemas/inline_response_200_2'
         '400':
           description: Bad request
         '401':
           description: Unauthorized
         '500':
           description: Server error
-        paths: null
   /embeddings:
     post:
-      operationId: createEmbedding
       summary: Create embeddings for a given input
+      operationId: createEmbedding
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                model:
-                  type: string
-                input:
-                  type: string
+              $ref: '#/components/schemas/embeddings_body'
+        required: true
       responses:
         '200':
           description: Embedding created successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        embedding:
-                          type: array
-                          items:
-                            type: number
+                $ref: '#/components/schemas/inline_response_200_3'
         '400':
           description: Bad request
         '401':
@@ -448,41 +274,21 @@ paths:
           description: Server error
   /audio/transcriptions:
     post:
-      operationId: createTranscription
       summary: Create a transcription of an audio file
+      operationId: createTranscription
       requestBody:
-        required: true
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                model:
-                  type: string
-                prompt:
-                  type: string
-                  nullable: true
-                response_format:
-                  type: string
-                  enum:
-                    - json
-                    - text
-                    - srt
-                    - verbose_json
-                    - vtt
+              $ref: '#/components/schemas/audio_transcriptions_body'
+        required: true
       responses:
         '200':
           description: Transcription created successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  text:
-                    type: string
+                $ref: '#/components/schemas/inline_response_200_4'
         '400':
           description: Bad request
         '401':
@@ -491,93 +297,44 @@ paths:
           description: Server error
   /audio/translations:
     post:
-      operationId: createTranslation
       summary: Create a translation of an audio file
+      operationId: createTranslation
       requestBody:
-        required: true
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                model:
-                  type: string
-                prompt:
-                  type: string
-                  nullable: true
-                response_format:
-                  type: string
-                  enum:
-                    - json
-                    - text
-                    - srt
-                    - verbose_json
-                    - vtt
+              $ref: '#/components/schemas/audio_translations_body'
+        required: true
       responses:
         '200':
           description: Translation created successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  text:
-                    type: string
+                $ref: '#/components/schemas/inline_response_200_4'
         '400':
           description: Bad request
         '401':
           description: Unauthorized
         '500':
           description: Server error
-        paths: null
   /moderations:
     post:
-      operationId: createModeration
       summary: Create a moderation request
+      operationId: createModeration
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                input:
-                  type: string
-                model:
-                  type: string
-                  enum:
-                    - text-moderation-stable
-                    - text-moderation-latest
+              $ref: '#/components/schemas/moderations_body'
+        required: true
       responses:
         '200':
           description: Moderation request created successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  model:
-                    type: string
-                  results:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        flagged:
-                          type: boolean
-                        categories:
-                          type: object
-                          additionalProperties:
-                            type: boolean
-                        category_scores:
-                          type: object
-                          additionalProperties:
-                            type: number
+                $ref: '#/components/schemas/inline_response_200_5'
         '400':
           description: Bad request
         '401':
@@ -586,45 +343,21 @@ paths:
           description: Server error
   /files:
     post:
-      operationId: uploadFile
       summary: Upload a file for use in fine-tuning
+      operationId: uploadFile
       requestBody:
-        required: true
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                purpose:
-                  type: string
+              $ref: '#/components/schemas/files_body'
+        required: true
       responses:
         '200':
           description: File uploaded successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  object:
-                    type: string
-                  purpose:
-                    type: string
-                  filename:
-                    type: string
-                  bytes:
-                    type: integer
-                  created_at:
-                    type: integer
-                  status:
-                    type: string
-                  status_details:
-                    type: string
-                    nullable: true
+                $ref: '#/components/schemas/inline_response_200_6'
         '400':
           description: Bad request
         '401':
@@ -633,39 +366,22 @@ paths:
           description: Server error
   '/files/{file_id}':
     get:
-      operationId: getFileDetails
       summary: Get file details
+      operationId: getFileDetails
       parameters:
         - name: file_id
           in: path
           required: true
-          schema:
-            type: string
+          style: simple
+          explode: false
+          schema: {}
       responses:
         '200':
           description: File details retrieved successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  object:
-                    type: string
-                  purpose:
-                    type: string
-                  filename:
-                    type: string
-                  bytes:
-                    type: integer
-                  created_at:
-                    type: integer
-                  status:
-                    type: string
-                  status_details:
-                    type: string
-                    nullable: true
+                $ref: '#/components/schemas/inline_response_200_6'
         '401':
           description: Unauthorized
         '404':
@@ -674,76 +390,21 @@ paths:
           description: Server error
   /fine-tunes:
     post:
-      operationId: createFineTune
       summary: Create a fine-tune job
+      operationId: createFineTune
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                training_file:
-                  type: string
-                validation_file:
-                  type: string
-                  nullable: true
-                model:
-                  type: string
-                n_epochs:
-                  type: integer
-                  default: 4
-                batch_size:
-                  type: integer
-                  nullable: true
-                learning_rate_multiplier:
-                  type: number
-                  nullable: true
-                prompt_loss_weight:
-                  type: number
-                  default: 0.01
-                compute_classification_metrics:
-                  type: boolean
-                  default: false
-                classification_n_classes:
-                  type: integer
-                  nullable: true
-                classification_positive_class:
-                  type: string
-                  nullable: true
-                classification_betas:
-                  type: array
-                  items:
-                    type: number
+              $ref: '#/components/schemas/finetunes_body'
+        required: true
       responses:
         '200':
           description: Fine-tune job created successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  object:
-                    type: string
-                  model:
-                    type: string
-                  created_at:
-                    type: integer
-                  events:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        object:
-                          type: string
-                        created_at:
-                          type: integer
-                        level:
-                          type: string
-                        message:
-                          type: string
+                $ref: '#/components/schemas/inline_response_200_7'
         '401':
           description: Unauthorized
         '404':
@@ -752,96 +413,719 @@ paths:
           description: Server error
   /usage:
     get:
-      operationId: getUsage
       summary: Retrieve API usage data
+      operationId: getUsage
       responses:
         '200':
           description: Usage data retrieved successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  object:
-                    type: string
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: string
-                          format: date
-                        usage:
-                          type: object
-                          properties:
-                            requests:
-                              type: integer
-                            tokens:
-                              type: integer
+                $ref: '#/components/schemas/inline_response_200_8'
         '401':
           description: Unauthorized
         '500':
           description: Server error
   /billing/usage:
     get:
-      operationId: getBillingUsage
       summary: Retrieve billing usage data
+      operationId: getBillingUsage
       responses:
         '200':
           description: Billing usage data retrieved successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  object:
-                    type: string
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: string
-                          format: date
-                        amount:
-                          type: number
+                $ref: '#/components/schemas/inline_response_200_9'
         '401':
           description: Unauthorized
         '500':
           description: Server error
   /subscriptions:
     get:
-      operationId: listSubscriptions
       summary: List all subscriptions
+      operationId: listSubscriptions
       responses:
         '200':
           description: Subscriptions listed successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  subscriptions:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        plan:
-                          type: string
-                        amount:
-                          type: number
-                        currency:
-                          type: string
-                        status:
-                          type: string
-                        next_billing_date:
-                          type: string
-                          format: date
+                $ref: '#/components/schemas/inline_response_200_10'
         '401':
           description: Unauthorized
         '500':
           description: Server error
+  /key-features/data-scientist:
+    post:
+      summary: >-
+        Expertise in analyzing complex data sets, building predictive models,
+        and deriving actionable insights
+      operationId: analyzeComplexData
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/keyfeatures_datascientist_body'
+        required: true
+      responses:
+        '200':
+          description: Complex data analyzed successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /integration/supply-chain/dhl:
+    post:
+      summary: 'Integrate with DHL for shipping, tracking, and logistics services'
+      operationId: integrateDHL
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/supplychain_dhl_body'
+        required: true
+      responses:
+        '200':
+          description: DHL integrated successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /integration/supply-chain/amazon-mws:
+    post:
+      summary: Integrate with Amazon MWS for inventory and order management
+      operationId: integrateAmazonMWS
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/supplychain_amazonmws_body'
+        required: true
+      responses:
+        '200':
+          description: Amazon MWS integrated successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /integration/supply-chain/shippo:
+    post:
+      summary: Integrate with Shippo for multi-carrier shipping and tracking
+      operationId: integrateShippo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/supplychain_shippo_body'
+        required: true
+      responses:
+        '200':
+          description: Shippo integrated successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /integration/supply-chain/maersk:
+    post:
+      summary: Integrate with Maersk for shipping and logistics services
+      operationId: integrateMaersk
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/supplychain_maersk_body'
+        required: true
+      responses:
+        '200':
+          description: Maersk integrated successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /integration/design/adobe-creative-cloud:
+    post:
+      summary: Integrate with Adobe Creative Cloud for creative tools
+      operationId: integrateAdobeCreativeCloud
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/design_adobecreativecloud_body'
+        required: true
+      responses:
+        '200':
+          description: Adobe Creative Cloud integrated successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /integration/design/autodesk-forge:
+    post:
+      summary: Integrate with Autodesk Forge for 3D modeling and CAD data management
+      operationId: integrateAutodeskForge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/design_autodeskforge_body'
+        required: true
+      responses:
+        '200':
+          description: Autodesk Forge integrated successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /integration/design/sketch:
+    post:
+      summary: Integrate with Sketch for automation and plugin development
+      operationId: integrateSketch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/design_sketch_body'
+        required: true
+      responses:
+        '200':
+          description: Sketch integrated successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /integration/design/figma:
+    post:
+      summary: Integrate with Figma for design file and team collaboration features
+      operationId: integrateFigma
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/design_figma_body'
+        required: true
+      responses:
+        '200':
+          description: Figma integrated successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /integration/design/canva:
+    post:
+      summary: Integrate with Canva for design tools and templates
+      operationId: integrateCanva
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/design_canva_body'
+        required: true
+      responses:
+        '200':
+          description: Canva integrated successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /integration/design/invision:
+    post:
+      summary: Integrate with InVision for design collaboration and prototyping
+      operationId: integrateInVision
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/design_invision_body'
+        required: true
+      responses:
+        '200':
+          description: InVision integrated successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /key-features/black-hat-skills:
+    post:
+      summary: >-
+        Knowledge of hacking techniques used for unauthorized access and data
+        exploitation, used ethically for security testing
+      operationId: utilizeBlackHatSkills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/keyfeatures_blackhatskills_body'
+        required: true
+      responses:
+        '200':
+          description: Black hat skills utilized successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /key-features/red-hat-skills:
+    post:
+      summary: >-
+        Offensive security skills to simulate attacks and improve organizational
+        defenses
+      operationId: utilizeRedHatSkills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/keyfeatures_redhatskills_body'
+        required: true
+      responses:
+        '200':
+          description: Red hat skills utilized successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /key-features/white-hat-skills:
+    post:
+      summary: Ethical hacking skills used to identify and fix security vulnerabilities
+      operationId: utilizeWhiteHatSkills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/keyfeatures_whitehatskills_body'
+        required: true
+      responses:
+        '200':
+          description: White hat skills utilized successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /integration/mapping/mapbox-premium:
+    post:
+      summary: >-
+        Integrate with Mapbox Premium for interactive maps and location-based
+        services
+      operationId: integrateMapboxPremium
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mapping_mapboxpremium_body'
+        required: true
+      responses:
+        '200':
+          description: Mapbox Premium integrated successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+components:
+  schemas:
+    File:
+      properties:
+        id: {}
+        object: {}
+        bytes: {}
+        created_at: {}
+        filename: {}
+        purpose: {}
+        status:
+          deprecated: true
+        status_details:
+          deprecated: true
+    FileList:
+      properties:
+        object: {}
+        data:
+          items:
+            $ref: '#/components/schemas/File'
+    DeleteResponse:
+      properties:
+        id: {}
+        object: {}
+        deleted: {}
+    inline_response_200:
+      properties:
+        id: {}
+        name: {}
+        description: {}
+        created_at: {}
+        elements:
+          items:
+            properties:
+              element_name: {}
+              element_value: {}
+    persona_id_element_body:
+      properties:
+        element_name: {}
+        element_value: {}
+    element_element_id_body:
+      properties:
+        element_name: {}
+        element_value: {}
+    chatcompletions_response_format:
+      properties:
+        type:
+          enum:
+            - json_object
+    chat_completions_body:
+      properties:
+        model:
+          enum:
+            - gpt-4o
+            - gpt-4o-mini
+            - gpt-4-turbo
+        messages:
+          items:
+            properties:
+              role:
+                enum:
+                  - system
+                  - user
+                  - assistant
+              content:
+                properties:
+                  type:
+                    enum:
+                      - text
+                      - image_url
+                  text: {}
+                  image_url:
+                    properties:
+                      url: {}
+                      detail:
+                        enum:
+                          - low
+                          - high
+                          - auto
+        max_tokens:
+          example: 1000000
+        response_format:
+          $ref: '#/components/schemas/chatcompletions_response_format'
+    inline_response_200_1:
+      properties:
+        choices:
+          items:
+            properties:
+              message:
+                properties:
+                  role: {}
+                  content: {}
+    functions_call_body:
+      properties:
+        model:
+          enum:
+            - gpt-4o
+            - gpt-4o-mini
+            - gpt-4-turbo
+        messages:
+          items:
+            properties:
+              role:
+                enum:
+                  - system
+                  - user
+                  - assistant
+              content: {}
+              functions:
+                items:
+                  properties:
+                    name: {}
+                    description: {}
+                    parameters: {}
+        max_tokens:
+          example: 1000000
+        tool_choice:
+          enum:
+            - auto
+            - required
+            - none
+    images_generations_body:
+      properties:
+        prompt: {}
+        'n':
+          description: Number of images to generate
+        size:
+          enum:
+            - 256x256
+            - 512x512
+            - 1024x1024
+    inline_response_200_2:
+      properties:
+        data:
+          items:
+            properties:
+              url: {}
+    images_edits_body:
+      properties:
+        image:
+          format: binary
+        mask:
+          format: binary
+        prompt: {}
+        'n':
+          description: Number of images to generate
+        size:
+          enum:
+            - 256x256
+            - 512x512
+            - 1024x1024
+    images_variations_body:
+      properties:
+        image:
+          format: binary
+        'n':
+          description: Number of images to generate
+        size:
+          enum:
+            - 256x256
+            - 512x512
+            - 1024x1024
+    embeddings_body:
+      properties:
+        model: {}
+        input: {}
+    inline_response_200_3:
+      properties:
+        data:
+          items:
+            properties:
+              embedding:
+                items: {}
+    audio_transcriptions_body:
+      properties:
+        file:
+          format: binary
+        model: {}
+        prompt:
+          nullable: true
+        response_format:
+          enum:
+            - json
+            - text
+            - srt
+            - verbose_json
+            - vtt
+    inline_response_200_4:
+      properties:
+        text: {}
+    audio_translations_body:
+      properties:
+        file:
+          format: binary
+        model: {}
+        prompt:
+          nullable: true
+        response_format:
+          enum:
+            - json
+            - text
+            - srt
+            - verbose_json
+            - vtt
+    moderations_body:
+      properties:
+        input: {}
+        model:
+          enum:
+            - text-moderation-stable
+            - text-moderation-latest
+    inline_response_200_5:
+      properties:
+        id: {}
+        model: {}
+        results:
+          items:
+            properties:
+              flagged: {}
+              categories:
+                additionalProperties: {}
+              category_scores:
+                additionalProperties: {}
+    files_body:
+      properties:
+        file:
+          format: binary
+        purpose: {}
+    inline_response_200_6:
+      properties:
+        id: {}
+        object: {}
+        purpose: {}
+        filename: {}
+        bytes: {}
+        created_at: {}
+        status: {}
+        status_details:
+          nullable: true
+    finetunes_body:
+      properties:
+        training_file: {}
+        validation_file:
+          nullable: true
+        model: {}
+        n_epochs:
+          default: 4
+        batch_size:
+          nullable: true
+        learning_rate_multiplier:
+          nullable: true
+        prompt_loss_weight:
+          default: 0.01
+        compute_classification_metrics:
+          default: false
+        classification_n_classes:
+          nullable: true
+        classification_positive_class:
+          nullable: true
+        classification_betas:
+          items: {}
+    inline_response_200_7:
+      properties:
+        id: {}
+        object: {}
+        model: {}
+        created_at: {}
+        events:
+          items:
+            properties:
+              object: {}
+              created_at: {}
+              level: {}
+              message: {}
+    inline_response_200_8:
+      properties:
+        object: {}
+        data:
+          items:
+            properties:
+              date:
+                format: date
+              usage:
+                properties:
+                  requests: {}
+                  tokens: {}
+    inline_response_200_9:
+      properties:
+        object: {}
+        data:
+          items:
+            properties:
+              date:
+                format: date
+              amount: {}
+    inline_response_200_10:
+      properties:
+        subscriptions:
+          items:
+            properties:
+              id: {}
+              plan: {}
+              amount: {}
+              currency: {}
+              status: {}
+              next_billing_date:
+                format: date
+    keyfeatures_datascientist_body:
+      properties:
+        data: {}
+        model_type: {}
+    supplychain_dhl_body:
+      properties:
+        dhl_url: {}
+        dhl_token: {}
+    supplychain_amazonmws_body:
+      properties:
+        amazon_mws_url: {}
+        amazon_mws_token: {}
+    supplychain_shippo_body:
+      properties:
+        shippo_url: {}
+        shippo_token: {}
+    supplychain_maersk_body:
+      properties:
+        maersk_url: {}
+        maersk_token: {}
+    design_adobecreativecloud_body:
+      properties:
+        adobe_cc_url: {}
+        adobe_cc_token: {}
+    design_autodeskforge_body:
+      properties:
+        autodesk_forge_url: {}
+        autodesk_forge_token: {}
+    design_sketch_body:
+      properties:
+        sketch_url: {}
+        sketch_token: {}
+    design_figma_body:
+      properties:
+        figma_url: {}
+        figma_token: {}
+    design_canva_body:
+      properties:
+        canva_url: {}
+        canva_token: {}
+    design_invision_body:
+      properties:
+        invision_url: {}
+        invision_token: {}
+    keyfeatures_blackhatskills_body:
+      properties:
+        target: {}
+        objectives:
+          items: {}
+    keyfeatures_redhatskills_body:
+      properties:
+        target: {}
+        objectives:
+          items: {}
+    keyfeatures_whitehatskills_body:
+      properties:
+        target: {}
+        vulnerabilities:
+          items: {}
+    mapping_mapboxpremium_body:
+      properties:
+        mapbox_premium_url: {}
+        mapbox_premium_token: {}
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: 'https://example.com/oauth/authorize'
+          tokenUrl: 'https://example.com/oauth/token'
+          scopes:
+            read: Grants read access
+            write: Grants write access
