@@ -1,0 +1,847 @@
+openapi: 3.1.0
+info:
+  title: Consolidated API
+  description: >
+    Comprehensive API combining the functionalities of text generation, vision
+    capabilities, function calling, data analysis, and various integrations.
+  version: 1.0.0
+servers:
+  - url: 'https://api.mostar.com'
+    description: MoStar API server
+  - url: 'https://arcgis.api.mostar.com'
+    description: ArcGIS API server
+  - url: 'https://leaflet.api.mostar.com'
+    description: Leaflet API server
+  - url: 'https://here.api.mostar.com'
+    description: HERE API server
+  - url: 'https://maptiks.api.mostar.com'
+    description: Maptiks API server
+  - url: 'https://graphhopper.api.mostar.com'
+    description: GraphHopper API server
+  - url: 'https://openlayers.api.mostar.com'
+    description: OpenLayers API server
+  - url: 'https://tomtom.api.mostar.com'
+    description: TomTom API server
+  - url: 'https://mapquest.api.mostar.com'
+    description: MapQuest API server
+  - url: 'https://baidu.api.mostar.com'
+    description: Baidu Maps API server
+  - url: 'https://yandex.api.mostar.com'
+    description: Yandex Maps API server
+  - url: 'https://mapbox.api.mostar.com'
+    description: Mapbox API server
+  - url: 'https://qgis.api.mostar.com'
+    description: QGIS API server
+  - url: 'https://arcgis-premium.api.mostar.com'
+    description: ArcGIS Premium API server
+  - url: 'https://mapbox-premium.api.mostar.com'
+    description: Mapbox Premium API server
+components:
+  securitySchemes:
+    userAuth:
+      type: apiKey
+      name: X-User-Name
+      in: header
+  schemas:
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+        secret_word:
+          type: string
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        bytes:
+          type: integer
+        created_at:
+          type: integer
+        filename:
+          type: string
+        purpose:
+          type: string
+        status:
+          type: string
+          deprecated: true
+        status_details:
+          type: string
+          deprecated: true
+    FileList:
+      type: object
+      properties:
+        object:
+          type: string
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              object:
+                type: string
+              bytes:
+                type: integer
+              created_at:
+                type: integer
+              filename:
+                type: string
+              purpose:
+                type: string
+              status:
+                type: string
+                deprecated: true
+              status_details:
+                type: string
+                deprecated: true
+    DeleteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        deleted:
+          type: boolean
+paths:
+  /chat/completions:
+    post:
+      operationId: createChatCompletion
+      summary: Generate text completions based on provided messages and images
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  enum:
+                    - gpt-4o
+                    - gpt-4o-mini
+                    - gpt-4-turbo
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum:
+                          - system
+                          - user
+                          - assistant
+                      content:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - text
+                              - image_url
+                          text:
+                            type: string
+                          image_url:
+                            type: object
+                            properties:
+                              url:
+                                type: string
+                              detail:
+                                type: string
+                                enum:
+                                  - low
+                                  - high
+                                  - auto
+                max_tokens:
+                  type: integer
+                  example: 1000
+                response_format:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - json_object
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  choices:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: object
+                          properties:
+                            role:
+                              type: string
+                            content:
+                              type: string
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /functions/call:
+    post:
+      operationId: callFunction
+      summary: Generate JSON for function calls based on user input
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  enum:
+                    - gpt-4o
+                    - gpt-4o-mini
+                    - gpt-4-turbo
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum:
+                          - system
+                          - user
+                          - assistant
+                      content:
+                        type: string
+                      functions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            description:
+                              type: string
+                            parameters:
+                              type: object
+                max_tokens:
+                  type: integer
+                  example: 1000
+                tool_choice:
+                  type: string
+                  enum:
+                    - auto
+                    - required
+                    - none
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  choices:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: object
+                          properties:
+                            role:
+                              type: string
+                            content:
+                              type: object
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+          paths: null
+  /images/generations:
+    post:
+      operationId: generateImage
+      summary: Generate images from text prompts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+                'n':
+                  type: integer
+                  description: Number of images to generate
+                size:
+                  type: string
+                  enum:
+                    - 256x256
+                    - 512x512
+                    - 1024x1024
+      responses:
+        '200':
+          description: Images generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        url:
+                          type: string
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /images/edits:
+    post:
+      operationId: editImage
+      summary: Edit images based on a prompt
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                mask:
+                  type: string
+                  format: binary
+                prompt:
+                  type: string
+                'n':
+                  type: integer
+                  description: Number of images to generate
+                size:
+                  type: string
+                  enum:
+                    - 256x256
+                    - 512x512
+                    - 1024x1024
+      responses:
+        '200':
+          description: Images edited successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        url:
+                          type: string
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /images/variations:
+    post:
+      operationId: createImageVariations
+      summary: Create variations of an existing image
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                'n':
+                  type: integer
+                  description: Number of images to generate
+                size:
+                  type: string
+                  enum:
+                    - 256x256
+                    - 512x512
+                    - 1024x1024
+      responses:
+        '200':
+          description: Image variations created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        url:
+                          type: string
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+        paths: null
+  /embeddings:
+    post:
+      operationId: createEmbedding
+      summary: Create embeddings for a given input
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                input:
+                  type: string
+      responses:
+        '200':
+          description: Embedding created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        embedding:
+                          type: array
+                          items:
+                            type: number
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /audio/transcriptions:
+    post:
+      operationId: createTranscription
+      summary: Create a transcription of an audio file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                model:
+                  type: string
+                prompt:
+                  type: string
+                  nullable: true
+                response_format:
+                  type: string
+                  enum:
+                    - json
+                    - text
+                    - srt
+                    - verbose_json
+                    - vtt
+      responses:
+        '200':
+          description: Transcription created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  text:
+                    type: string
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /audio/translations:
+    post:
+      operationId: createTranslation
+      summary: Create a translation of an audio file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                model:
+                  type: string
+                prompt:
+                  type: string
+                  nullable: true
+                response_format:
+                  type: string
+                  enum:
+                    - json
+                    - text
+                    - srt
+                    - verbose_json
+                    - vtt
+      responses:
+        '200':
+          description: Translation created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  text:
+                    type: string
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+        paths: null
+  /moderations:
+    post:
+      operationId: createModeration
+      summary: Create a moderation request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                input:
+                  type: string
+                model:
+                  type: string
+                  enum:
+                    - text-moderation-stable
+                    - text-moderation-latest
+      responses:
+        '200':
+          description: Moderation request created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  model:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        flagged:
+                          type: boolean
+                        categories:
+                          type: object
+                          additionalProperties:
+                            type: boolean
+                        category_scores:
+                          type: object
+                          additionalProperties:
+                            type: number
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /files:
+    post:
+      operationId: uploadFile
+      summary: Upload a file for use in fine-tuning
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                purpose:
+                  type: string
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  purpose:
+                    type: string
+                  filename:
+                    type: string
+                  bytes:
+                    type: integer
+                  created_at:
+                    type: integer
+                  status:
+                    type: string
+                  status_details:
+                    type: string
+                    nullable: true
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  '/files/{file_id}':
+    get:
+      operationId: getFileDetails
+      summary: Get file details
+      parameters:
+        - name: file_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  purpose:
+                    type: string
+                  filename:
+                    type: string
+                  bytes:
+                    type: integer
+                  created_at:
+                    type: integer
+                  status:
+                    type: string
+                  status_details:
+                    type: string
+                    nullable: true
+        '401':
+          description: Unauthorized
+        '404':
+          description: File not found
+        '500':
+          description: Server error
+  /fine-tunes:
+    post:
+      operationId: createFineTune
+      summary: Create a fine-tune job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                training_file:
+                  type: string
+                validation_file:
+                  type: string
+                  nullable: true
+                model:
+                  type: string
+                n_epochs:
+                  type: integer
+                  default: 4
+                batch_size:
+                  type: integer
+                  nullable: true
+                learning_rate_multiplier:
+                  type: number
+                  nullable: true
+                prompt_loss_weight:
+                  type: number
+                  default: 0.01
+                compute_classification_metrics:
+                  type: boolean
+                  default: false
+                classification_n_classes:
+                  type: integer
+                  nullable: true
+                classification_positive_class:
+                  type: string
+                  nullable: true
+                classification_betas:
+                  type: array
+                  items:
+                    type: number
+      responses:
+        '200':
+          description: Fine-tune job created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  model:
+                    type: string
+                  created_at:
+                    type: integer
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        object:
+                          type: string
+                        created_at:
+                          type: integer
+                        level:
+                          type: string
+                        message:
+                          type: string
+        '401':
+          description: Unauthorized
+        '404':
+          description: Model not found
+        '500':
+          description: Server error
+  /usage:
+    get:
+      operationId: getUsage
+      summary: Retrieve API usage data
+      responses:
+        '200':
+          description: Usage data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  object:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                        usage:
+                          type: object
+                          properties:
+                            requests:
+                              type: integer
+                            tokens:
+                              type: integer
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /billing/usage:
+    get:
+      operationId: getBillingUsage
+      summary: Retrieve billing usage data
+      responses:
+        '200':
+          description: Billing usage data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  object:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                        amount:
+                          type: number
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+  /subscriptions:
+    get:
+      operationId: listSubscriptions
+      summary: List all subscriptions
+      responses:
+        '200':
+          description: Subscriptions listed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscriptions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        plan:
+                          type: string
+                        amount:
+                          type: number
+                        currency:
+                          type: string
+                        status:
+                          type: string
+                        next_billing_date:
+                          type: string
+                          format: date
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
