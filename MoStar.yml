@@ -41,7 +41,7 @@ info:
     ⚙️ Symbolic Logic: Theorem validation, multi-hop reasoning chains
     🔄 Real-Time UI: Dynamic dashboards, live feedback loops
 servers:
-  - url: https://api.mostar.ai
+  - url: https://mo-overlord.tech
     description: Primary MoStar AI API Server
   - url: https://api.nasa.gov/
     description: NASA Earth Data API Integration
