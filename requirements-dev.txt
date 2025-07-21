@@ -1,0 +1,7 @@
+# Install production requirements, then add development-specific packages.
+-r requirements.txt
+
+# Testing - Essential for a robust API
+pytest==8.2.2
+pytest-asyncio==0.23.7 # For testing FastAPI's async endpoints
+pytest-cov==5.0.0      # For measuring test coverage
