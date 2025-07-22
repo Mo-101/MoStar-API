@@ -1,27 +1,33 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI
+from pydantic import BaseModel
 import os
 import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
-app = Flask(__name__)
-
+app = FastAPI()
 OPENAI_KEY = os.getenv("OPENAI_KEY")
 
-@app.route("/chat", methods=["POST"])
-def chat():
-    user_input = request.json.get("message", "Hello!")
+class ChatRequest(BaseModel):
+    message: str = "Hello!"
+
+@app.post("/chat")
+def chat(req: ChatRequest):
     headers = {
         "Authorization": f"Bearer {OPENAI_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
     data = {
         "model": "gpt-4",
-        "messages": [{"role": "user", "content": user_input}]
+        "messages": [{"role": "user", "content": req.message}],
     }
-    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data)
-    return jsonify(response.json())
+    response = requests.post(
+        "https://api.openai.com/v1/chat/completions", headers=headers, json=data
+    )
+    return response.json()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    import uvicorn
+
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
